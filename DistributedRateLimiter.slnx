@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/DistributedRateLimiter.Api/DistributedRateLimiter.Api.csproj" />
+  <Project Path="tests/DistributedRateLimiter.Tests/DistributedRateLimiter.Tests.csproj" />
+</Solution>

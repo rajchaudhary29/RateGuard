@@ -1,0 +1,6 @@
+@DistributedRateLimiter.Api_HostAddress = http://localhost:5298
+
+GET {{DistributedRateLimiter.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

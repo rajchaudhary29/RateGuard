@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FluxGuard — Distributed API Rate Limiter & Shield</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111726;
+      --card-border: #1e293b;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.15);
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    h1 span {
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 30px;
+    }
+
+    @media (max-width: 800px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .meter-box {
+      background: #0b1120;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .meter-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .progress-bar-bg {
+      background: #1e293b;
+      height: 12px;
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar-fill {
+      background: linear-gradient(90deg, #10b981, #38bdf8);
+      height: 100%;
+      width: 100%;
+      transition: width 0.3s ease, background 0.3s ease;
+    }
+
+    .meter-stats {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    button {
+      padding: 12px 18px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+
+    .btn-anon {
+      background: #1e293b;
+      color: #f8fafc;
+      border-color: #334155;
+    }
+    .btn-anon:hover { background: #334155; }
+
+    .btn-standard {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+    .btn-standard:hover { background: rgba(56, 189, 248, 0.25); }
+
+    .btn-premium {
+      background: rgba(129, 140, 248, 0.15);
+      color: #818cf8;
+      border-color: rgba(129, 140, 248, 0.4);
+    }
+    .btn-premium:hover { background: rgba(129, 140, 248, 0.25); }
+
+    .btn-spam {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.4);
+      margin-top: 6px;
+    }
+    .btn-spam:hover { background: rgba(239, 68, 68, 0.25); }
+
+    .console-box {
+      background: #050811;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      min-height: 220px;
+      max-height: 260px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      color: #cbd5e1;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .status-200 { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+    .status-429 { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+    .audit-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin-top: 10px;
+    }
+
+    .audit-table th, .audit-table td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .audit-table th {
+      color: var(--text-muted);
+      font-weight: 600;
+      background: #0d1322;
+    }
+
+    .audit-table td { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="badge">Shield Active &bull; Redis Sliding-Window &bull; PostgreSQL EF Core</div>
+      <h1><span>FluxGuard</span> API Engine</h1>
+      <p class="subtitle">Distributed sliding-window rate-limiting, request throttling, and atomic audit logging dashboard.</p>
+    </header>
+
+    <div class="grid">
+      <!-- Live Traffic Simulator -->
+      <div class="card">
+        <h2>⚡ Live Traffic Control</h2>
+
+        <div class="meter-box">
+          <div class="meter-header">
+            <span>Remaining Request Quota</span>
+            <span id="quota-text">-- / --</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div id="quota-fill" class="progress-bar-fill" style="width: 100%;"></div>
+          </div>
+          <div class="meter-stats">
+            <span>Client: <strong id="active-client">ip:127.0.0.1</strong></span>
+            <span>Reset: <strong id="reset-seconds">--</strong></span>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn-anon" onclick="makeRequest(null, 'Anonymous')">
+            <span>👤 Anonymous Request</span>
+            <small style="opacity:0.7">Quota: 5 req / 10s</small>
+          </button>
+
+          <button class="btn-standard" onclick="makeRequest('key-standard-123', 'Standard')">
+            <span>🔑 Standard API Key</span>
+            <small style="opacity:0.8">Quota: 20 req / 10s</small>
+          </button>
+
+          <button class="btn-premium" onclick="makeRequest('key-premium-999', 'Premium')">
+            <span>💎 Premium API Key</span>
+            <small style="opacity:0.8">Quota: 100 req / 10s</small>
+          </button>
+
+          <button class="btn-spam" onclick="spamBurst()">
+            <span>🚨 Rapid Traffic Burst (Spam 7 Requests)</span>
+            <small style="opacity:0.9">Triggers HTTP 429</small>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Inspection Console -->
+      <div class="card">
+        <h2>🖥️ Response Inspector & Headers</h2>
+        <div id="console" class="console-box">Ready. Click any action button to test distributed rate limiting...</div>
+      </div>
+    </div>
+
+    <!-- PostgreSQL Audit Log Feed -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2>🛡️ PostgreSQL Rate-Limit Violation Logs (Real-time)</h2>
+        <button style="padding:6px 12px; font-size:0.8rem; background:#1e293b; color:#cbd5e1;" onclick="fetchAuditLogs()">🔄 Refresh</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="audit-table">
+          <thead>
+            <tr>
+              <th>Timestamp (UTC)</th>
+              <th>Client Key</th>
+              <th>Tier</th>
+              <th>Endpoint</th>
+              <th>Status</th>
+              <th>Retry-After</th>
+            </tr>
+          </thead>
+          <tbody id="audit-tbody">
+            <tr><td colspan="6" style="text-align:center; color:#64748b; padding:20px;">No violations recorded yet. Trigger a burst to generate audit logs!</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function makeRequest(apiKey, tierName) {
+      const consoleBox = document.getElementById('console');
+      const headers = {};
+      if (apiKey) headers['X-Api-Key'] = apiKey;
+
+      const startTime = performance.now();
+      try {
+        const response = await fetch('/api/products', { headers });
+        const duration = Math.round(performance.now() - startTime);
+
+        const limit = response.headers.get('X-RateLimit-Limit');
+        const remaining = response.headers.get('X-RateLimit-Remaining');
+        const resetEpoch = response.headers.get('X-RateLimit-Reset');
+        const retryAfter = response.headers.get('Retry-After');
+
+        updateMeter(limit, remaining, apiKey ? `apikey:${apiKey}` : 'ip:127.0.0.1');
+
+        if (response.status === 200) {
+          const data = await response.json();
+          consoleBox.innerHTML = `<span class="status-badge status-200">HTTP 200 OK</span> (${duration}ms)
+Headers:
+  X-RateLimit-Limit: ${limit}
+  X-RateLimit-Remaining: ${remaining}
+  X-RateLimit-Reset: ${resetEpoch}
+
+Response Body (Truncated):
+${JSON.stringify(data.slice(0, 2), null, 2)}`;
+        } else if (response.status === 429) {
+          const problem = await response.json();
+          consoleBox.innerHTML = `<span class="status-badge status-429">HTTP 429 TOO MANY REQUESTS</span> (${duration}ms)
+Headers:
+  Retry-After: ${retryAfter}s
+  X-RateLimit-Limit: ${limit}
+  X-RateLimit-Remaining: 0
+
+RFC 7807 ProblemDetails:
+${JSON.stringify(problem, null, 2)}`;
+          // Refresh audit logs
+          setTimeout(fetchAuditLogs, 500);
+        }
+      } catch (err) {
+        consoleBox.innerText = `Error: ${err.message}`;
+      }
+    }
+
+    async function spamBurst() {
+      for (let i = 1; i <= 7; i++) {
+        await makeRequest(null, 'Anonymous');
+        await new Promise(r => setTimeout(r, 80));
+      }
+    }
+
+    function updateMeter(limit, remaining, clientKey) {
+      if (!limit) return;
+      document.getElementById('quota-text').innerText = `${remaining} / ${limit} Remaining`;
+      document.getElementById('active-client').innerText = clientKey;
+
+      const pct = Math.max(0, Math.min(100, (remaining / limit) * 100));
+      const fill = document.getElementById('quota-fill');
+      fill.style.width = `${pct}%`;
+
+      if (pct < 20) {
+        fill.style.background = '#ef4444';
+      } else if (pct < 50) {
+        fill.style.background = '#f59e0b';
+      } else {
+        fill.style.background = 'linear-gradient(90deg, #10b981, #38bdf8)';
+      }
+    }
+
+    async function fetchAuditLogs() {
+      try {
+        const res = await fetch('/api/audit-logs?limit=10');
+        if (!res.ok) return;
+        const logs = await res.json();
+        const tbody = document.getElementById('audit-tbody');
+
+        if (!logs || logs.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b; padding:20px;">No violations recorded yet. Trigger a burst to generate audit logs!</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = logs.map(l => `
+          <tr>
+            <td>${new Date(l.timestampUtc).toLocaleTimeString()}</td>
+            <td><span style="color:#38bdf8;">${l.clientKey}</span></td>
+            <td>${l.tier || 'Anonymous'}</td>
+            <td>${l.httpMethod} ${l.requestPath}</td>
+            <td><span class="status-badge status-429">${l.statusCode}</span></td>
+            <td>${l.retryAfterSeconds}s</td>
+          </tr>
+        `).join('');
+      } catch (_) {}
+    }
+
+    // Auto-fetch audit logs on load
+    fetchAuditLogs();
+  </script>
+</body>
+</html>

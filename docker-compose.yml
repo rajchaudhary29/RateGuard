@@ -1,0 +1,71 @@
+services:
+  # Redis Distributed Cache & Counter Store
+  redis:
+    image: redis:7.2-alpine
+    container_name: rate-limiter-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - ratelimit-network
+
+  # PostgreSQL Relational Database for Audit Logs
+  postgres:
+    image: postgres:16-alpine
+    container_name: rate-limiter-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: ratelimitdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ratelimitdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - ratelimit-network
+
+  # ASP.NET Core Web API
+  api:
+    build:
+      context: .
+      dockerfile: src/DistributedRateLimiter.Api/Dockerfile
+    container_name: rate-limiter-api
+    restart: unless-stopped
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - UseInMemoryFallback=false
+      - ConnectionStrings__PostgreSql=Host=postgres;Port=5432;Database=ratelimitdb;Username=postgres;Password=postgrespassword;
+      - Redis__ConnectionString=redis:6379
+      - RateLimiting__DefaultPermitLimit=10
+      - RateLimiting__DefaultWindowSeconds=10
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - ratelimit-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  ratelimit-network:
+    driver: bridge
