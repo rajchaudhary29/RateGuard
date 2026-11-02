@@ -1,9 +1,0 @@
-{
-  "ExpandedNodes": [
-    "",
-    "\\src\\DistributedRateLimiter.Api",
-    "\\tests",
-    "\\tests\\DistributedRateLimiter.Tests"
-  ],
-  "PreviewInSolutionExplorer": false
-}

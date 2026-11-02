@@ -1,0 +1,13 @@
+## Visual Studio / .NET ignores
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+TestResults/
+.idea/
+*.DS_Store
