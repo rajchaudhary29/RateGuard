@@ -116,3 +116,5 @@ A production-ready GitHub Actions workflow is provided at [`.github/workflows/ci
 2. Compiles in `Release` configuration.
 3. Executes all 15 unit and integration tests.
 4. Builds and validates the production Docker container.
+
+## LINK: https://rateguard-dirq.onrender.com
