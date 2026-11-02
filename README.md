@@ -1,3 +1,5 @@
+## LINK: https://rateguard-dirq.onrender.com
+
 # Distributed Rate-Limiter & Request-Throttling Web API (Production Ready)
 
 A high-performance, enterprise-grade ASP.NET Core Web API implementing distributed rate limiting and request throttling using **Redis** (atomic sliding-window Lua script) and **PostgreSQL** (Entity Framework Core audit persistence).
@@ -117,4 +119,3 @@ A production-ready GitHub Actions workflow is provided at [`.github/workflows/ci
 3. Executes all 15 unit and integration tests.
 4. Builds and validates the production Docker container.
 
-## LINK: https://rateguard-dirq.onrender.com
